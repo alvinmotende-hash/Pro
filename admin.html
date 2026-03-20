@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CreativePro | Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="admin.html">Admin Dashboard</a>
+    <a href="login.html" onclick="logout()">Logout</a>
+  </nav>
+
+  <!-- Admin Section -->
+  <section class="admin">
+    <h2>Admin Dashboard</h2>
+    <p>Manage user feedback below:</p>
+    <div id="adminWall"></div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 CreativePro | Admin Panel</p>
+  </footer>
+
+  <script>
+    // Logout function
+    function logout() {
+      localStorage.removeItem("token");
+      alert("You have been logged out.");
+    }
+
+    // Load feedback for admin
+    async function loadAdminFeedback() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("Unauthorized. Please login first.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const res = await fetch("http://localhost:5000/api/feedback");
+      const data = await res.json();
+      const wall = document.getElementById("adminWall");
+      wall.innerHTML = "";
+      data.forEach(fb => {
+        const card = document.createElement("div");
+        card.className = "feedback-card";
+        card.textContent = fb.text;
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Delete";
+        delBtn.onclick = async () => {
+          await fetch(`http://localhost:5000/api/feedback/${fb._id}`, {
+            method: "DELETE",
+            headers: { "Authorization": token }
+          });
+          loadAdminFeedback();
+        };
+
+        card.appendChild(delBtn);
+        wall.appendChild(card);
+      });
+    }
+
+    loadAdminFeedback();
+  </script>
+</body>
+</html>
